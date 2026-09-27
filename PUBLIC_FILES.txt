@@ -1,0 +1,14 @@
+.gitattributes
+.gitignore
+PUBLIC_FILES.txt
+README.en.md
+README.md
+episodes/02-local-service/audit_dataset.py
+episodes/02-local-service/benchmark.py
+episodes/02-local-service/minimal.py
+episodes/02-local-service/quickstart.py
+episodes/02-local-service/requirements.txt
+episodes/02-local-service/server.py
+episodes/02-local-service/test_audit.py
+episodes/02-local-service/test_examples.py
+tools/check_public_content.py

@@ -20,9 +20,19 @@ python quickstart.py
 python -m uvicorn server:app --host 127.0.0.1 --port 8000 --workers 1
 ```
 
-The first load fetches required model artifacts; weights are not bundled. For offline use, prepare and test a complete cache for the pinned revision. Open the local service on port 8000 at `/docs` and send a Chinese ticket with a `text` field to `/triage`.
+The first load fetches required model artifacts; weights are not bundled. For offline use, prepare and test a complete cache for the pinned revision. Open `http://127.0.0.1:8000/docs`, expand `POST /triage`, select `Try it out`, enter a Chinese ticket with a `text` field, and select `Execute`.
 
 The service loads and warms up during startup and returns 503 when busy. `/healthz` checks liveness; `/readyz` checks readiness. This is a teaching example, not a complete production deployment. Policy thresholds are illustrative and need validation on business data.
+
+## Runtime and deployment notes
+
+- **External access:** Add authentication, request size limits, rate limits, timeout and cancellation handling, redacted logs, monitoring, gradual rollout, and rollback. The example's busy response only manages inference occupancy within one process; it does not replace these controls.
+- **Input length:** Check token counts with the model's tokenizer in addition to the API's character limit, so oversized text is not silently truncated.
+- **Processes and devices:** The example uses one worker. Additional workers typically load their own model copies; budget RAM or VRAM accordingly. On MPS, verify compatibility of the operations used by the model.
+- **Offline deployment:** Prepare the pinned model, configuration, and tokenizer cache, then test startup with networking disabled to verify that all required files are present.
+- **Bilingual preloading:** Use `router.preload(["english", "multilingual"])` when only those two checkpoints are needed. The pinned version registers three checkpoints by default; `preload=True` loads all registered checkpoints, not just two when `max_loaded=2`. Warm up English and Chinese inputs and questions separately, explicitly selecting `model="english"` and `model="multilingual"`.
+
+`threatens_cancellation.noul` concerns cancellation intent expressed in the input, not a forecast of future customer churn. The policy first sends low-confidence department classifications to human review; only classifications that meet the threshold proceed to the cancellation-intent check for priority follow-up.
 
 ## Files and tests
 
@@ -43,6 +53,8 @@ python benchmark.py --warmup 5 --runs 100 --output benchmark_result.json
 ```
 
 This records fixed-input, batch-size-1, serial warm inference: P50, P95, individual timings, and environment details. It is not an HTTP concurrency benchmark. No hardware latency, memory, or accuracy results are pre-filled. Generated records are excluded from commits by default.
+
+Record initial downloads, model loading, and warm inference separately. Model revision, language, input length, question count, dtype, and device affect timing; keep the model and input conditions consistent when comparing devices. The result includes device, model revision, dtype, dependency versions, and CUDA peak memory reported by the PyTorch allocator, with device synchronization around GPU timing. This memory metric differs from whole-process usage shown by `nvidia-smi`. Measure HTTP capacity separately, including queueing, networking, serialization, varying input lengths, and busy-response rates.
 
 ## Dataset auditing
 

@@ -1,0 +1,7 @@
+# Reuse Colab's installed CUDA PyTorch through an isolated system-site-packages venv.
+laya==0.3.4
+transformers==4.48.3
+tokenizers==0.21.4
+huggingface-hub==0.36.0
+safetensors==0.6.2
+numpy==2.2.6

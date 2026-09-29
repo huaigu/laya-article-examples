@@ -2,13 +2,18 @@
 
 [English](README.en.md)
 
-本仓库收录系列文章的运行示例，与日常开发和训练资料分开，不继承原仓库历史。目前包含第二期：中文工单推理、业务门控、FastAPI 服务、性能记录和通用数据审计。
+本仓库收录系列文章的运行示例，与日常开发和训练资料分开，不继承原仓库历史。目前包含第二期的本地推理与服务，以及第三期的公开数据准备、微调、选模型和对照评测。
+
+## 目录
+
+- `episodes/02-local-service`：中文工单推理、业务门控、FastAPI 服务、性能记录和通用数据审计。
+- `episodes/03-finetuning-evaluation`：固定版本的 BANKING77 数据重建、训练专用压缩包、Laya 原生微调和结果复算。
 
 ## 公开范围
 
-仅包含示例代码、演示策略、模拟接口测试、合成测试用例和说明文档。不包含真实工单、业务或训练数据、权重、微调产物、内部日志、凭据、本机配置、文章草稿、配图生成记录或原仓库历史。
+仅包含示例代码、公开数据的下载与处理规则、演示策略、模拟接口测试、合成测试用例和说明文档。不提交真实工单、数据集文件、权重、微调产物、内部日志、凭据、本机配置、文章草稿、配图生成记录或原仓库历史。
 
-## 安装与运行
+## 第二期：安装与运行
 
 需要 Python 3.10+ 和 Git，建议使用虚拟环境。先按 PyTorch 官方安装说明安装适合本机的构建，再从仓库根目录执行：
 
@@ -34,7 +39,7 @@ python -m uvicorn server:app --host 127.0.0.1 --port 8000 --workers 1
 
 `threatens_cancellation.noul` 判断的是输入文本是否表达取消订阅的意向，不是客户未来流失率。分类置信度未达到门槛时先转人工；达到门槛后，再用取消意向判断决定是否优先跟进。
 
-## 文件与测试
+## 第二期文件与测试
 
 本期目录中，`minimal.py` 是最小分类示例，`quickstart.py` 定义三个问题与门控策略，`server.py` 提供 API，`benchmark.py` 记录热推理，`audit_dataset.py` 审计输入数据。两个 `test_*.py` 文件分别覆盖门控与模拟 HTTP、数据审计。
 
@@ -46,6 +51,19 @@ python -m unittest discover -s episodes/02-local-service -p "test_*.py" -v
 ```
 
 HTTP 测试使用 FakeAgent，数据审计测试使用合成记录；两者都不验证真实模型准确率或性能。
+
+## 第三期：微调与评测
+
+第三期目录会从固定提交下载 BANKING77，并核对原始文件与重建后拆分的 SHA-256。生成的训练压缩包只有训练集和验证集，测试集留到权重选定后再读。
+
+```bash
+cd episodes/03-finetuning-evaluation
+python prepare.py --output data/banking77
+python build_training_bundle.py --data data/banking77 --output outputs/episode03-training.zip
+python -m unittest discover -p "test_*.py" -v
+```
+
+完整训练需要 CUDA GPU，不会在普通测试中启动。训练、选权重、评测命令和文章历史结果见该目录的 `README.md` 与 `RESULTS.md`。
 
 在本期目录运行真实模型测量：
 
